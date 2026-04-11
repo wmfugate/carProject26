@@ -1,0 +1,6 @@
+{
+"eff_weight": 0.35,
+"perf_weight": 0.1,
+"c_weight": 0.55,
+"return": "web"
+}

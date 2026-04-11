@@ -1,0 +1,7 @@
+{
+"eff_weight": 0,
+"perf_weight": 0.5,
+"c_weight": 0.5,
+"return": "email",
+"email": "USER_GMAIL@gmail.com"
+}
