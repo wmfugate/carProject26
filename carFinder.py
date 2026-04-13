@@ -26,15 +26,17 @@ def test(fileName):
 
     df["mpg_norm"] = (df["mpg"] - df["mpg"].min()) / (df["mpg"].max() - df["mpg"].min())
     df["acc_norm"] = 1 - (df["acceleration"] - df["acceleration"].min()) / (df["acceleration"].max() - df["acceleration"].min())
+    #acceleration is inversed due to data giving time in seconds to reach a speed >> lower time equals greater acceleration and vice versa
     df["hp_norm"] = (df["horsepower"] - df["horsepower"].min()) / (df["horsepower"].max() - df["horsepower"].min())
 
     df["score"] = df["mpg_norm"] * data["eff_weight"] + df["acc_norm"] * data["perf_weight"] + df["hp_norm"] * data["c_weight"]
 
-    top3list = list(zip(df.sort_values(by="score", ascending=False).head(3).index, df.sort_values(by="score", ascending=False).head(3)["model_year"], df.sort_values(by="score", ascending=False).head(3)["score"]))   #sorts score values from greatest to least >> gets top 3 names, stored in list
+    top3 = df.sort_values(by="score", ascending=False).head(3)  #sorts score values from greatest to least
+    top3list = list(zip(top3.index, top3["model_year"], top3["score"]))   #adds names, model year, and score of each top car to list
     #print(top3list)
 
     if(top3list[0][2] == 0 and top3list[1][2] == 0 and top3list[2][2] == 0):
-        print("No preference/weights inputted.")
+        print("No preference/weights inputted.")    #error catching: if no weights entered
         return
 
     if(data["return"] == "web"):
@@ -60,28 +62,33 @@ def test(fileName):
         
         body = "1st Best Car: " + top3list[0][0] + " " + str(top3list[0][1]) +"\n\n2nd Best Car: " + top3list[1][0] + " " + str(top3list[1][1]) + "\n\n3rd Best Car: " + top3list[2][0] + " " + str(top3list[2][1])
 
-        try:
-            msg = MIMEMultipart()
-            msg['From'] = EMAIL_ADDRESS
-            msg['To'] = data["email"]
-            msg['Subject'] = "Best Cars for You"
+        if(EMAIL_ADDRESS == None or EMAIL_PASSWORD == None or data["email"] == "USER_GMAIL@gmail.com"):
+            print("Email credentials not set -- see recipient email in input JSON and sender email in .env\n")
+            #error checking to make sure credentials are set
+        else:
+            try:
+                msg = MIMEMultipart()
+                msg['From'] = EMAIL_ADDRESS
+                msg['To'] = data["email"]
+                msg['Subject'] = "Best Cars for You"
 
-            msg.attach(MIMEText(body, 'plain'))
+                msg.attach(MIMEText(body, 'plain'))
 
-            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-                server.starttls()
-                server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-                server.sendmail(EMAIL_ADDRESS, data["email"], msg.as_string())
-            
-            print("Email sent successfully!")
-        except Exception as e:
-            print(f"Error sending email: {e}")
+                with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+                    server.starttls()
+                    server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+                    server.sendmail(EMAIL_ADDRESS, data["email"], msg.as_string())
+                
+                print("Email sent successfully!")
+            except Exception as e:
+                print(f"Error sending email: {e}")
     else:
         print("That return path is not implemented.")
         #add error code?
 
 
-print("Tests 1-4 return JSON formatted strings (as if returning back to user via web)\n"
+print("Description of JSON tests:\n"
+"Tests 1-4 return JSON formatted strings (as if returning back to user via web)\n"
 "Tests 5-7 return an email to a test account\n"
 "Test 7 is meant as a error check (no preferences entered)\n")
 #this is a loop to go through the test JSONs
